@@ -11,9 +11,8 @@ class User:
         db = firestore.client()
         name_id = "_".join([x.title() for x in full_name.split(" ")])
         info = db.collection(u'Users').document(u'{}'.format(name_id)).get()
-        print(info.exists)
         if info.exists:
-            data = info.into_dict()
+            data = info.to_dict()
             self.name = data['name']
             self.uuid = data['uuid']
             self.privilege = data['privilege']
@@ -44,5 +43,3 @@ class User:
     
     def has_voted(self, election_id):
         return election_id in self._votes_sent
-
-user = User("Connor Wilson", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 100, set())

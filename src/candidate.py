@@ -12,7 +12,7 @@ class Candidate:
         name_id = "_".join([x.title() for x in full_name.split(" ")])
         info = db.collection(u'Candidates').document(u'{}'.format(name_id)).get()
         if info.exists:
-            data =  info.to_dict()
+            data = info.to_dict()
             self.id = data['id']
             self.description = data['description']
             self.name = data['name']
@@ -49,6 +49,3 @@ class Candidate:
     @votes.setter
     def votes(self, value):
         self._votes = value
-
-doug = Candidate("Doug Ford")
-print(doug._uuid)
