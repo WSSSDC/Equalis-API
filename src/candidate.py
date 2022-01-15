@@ -1,4 +1,4 @@
-class Candidate():
+class Candidate:
 
     def __init__(self):
         self._id = -1
