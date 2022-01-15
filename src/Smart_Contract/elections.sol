@@ -18,6 +18,7 @@ contract ElectionsContract {
         // Check if I have this ID
         mapping(string => bool) candidatesIDs;
         // Store Candidate Count
+        string[] candidatesIDsArray;
         uint256 candidatesCount;
         uint256 totalVoteCount;
     }
@@ -71,6 +72,7 @@ contract ElectionsContract {
         require(!elections[_electionID].end);
         // create candidateID
         elections[_electionID].candidatesCount++;
+        elections[_electionID].candidatesIDsArray.push(_candidateID);
         elections[_electionID].candidates[_candidateID] = Candidate(
             _name,
             _description,
@@ -189,5 +191,14 @@ contract ElectionsContract {
         returns (uint256)
     {
         return elections[_electionID].candidates[_candidateID].voteCount;
+    }
+
+    function getElectionCandidateIDs(uint256 _electionID)
+        public
+        view
+        validateElection(_electionID)
+        returns (string[] memory)
+    {
+        return elections[_electionID].candidatesIDsArray;
     }
 }
