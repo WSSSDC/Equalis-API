@@ -3,14 +3,13 @@ from firebase_admin import firestore
 from firebase_admin import credentials
 
 class User:
-    def __init__(self, full_name, uuid = "", privilege = 0, votes_sent = set()):
+    def __init__(self, uuid, full_name = "", privilege = 0, votes_sent = set()):
         cred = credentials.Certificate("src/credentials.json")
         firebase_admin.initialize_app(cred, {
             'projectId' : "equalis-4ceff"
         })
         db = firestore.client()
-        name_id = "_".join([x.title() for x in full_name.split(" ")])
-        info = db.collection(u'Users').document(u'{}'.format(name_id)).get()
+        info = db.collection(u'Users').document(u'{}'.format(uuid)).get()
         if info.exists:
             data = info.to_dict()
             self.name = data['name']
@@ -24,22 +23,14 @@ class User:
                 u'uuid': uuid,
                 u'votes_sent': votes_sent,
             }
-            db.collection(u'Users').document(u'{}'.format(name_id)).set(data)
+            db.collection(u'Users').document(u'{}'.format(uuid)).set(data)
             self.uuid = uuid
             self.name = full_name
-            self.privilege = 0
-            self.votes_sent = set()
+            self.privilege = privilege
+            self.votes_sent = votes_sent
 
-    @property
-    def privilege(self):
-        return self._privilege
-
-    @privilege.setter
-    def privilege(self, value):
-        self._privilege = value
-    
     def update_votes(self, election_id):
-        self._votes_sent.add(election_id)
+        self.votes_sent.add(election_id)
     
     def has_voted(self, election_id):
-        return election_id in self._votes_sent
+        return election_id in self.votes_sent
