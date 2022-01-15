@@ -4,16 +4,12 @@ from firebase_admin import credentials
 
 class User:
     def __init__(self, uuid, full_name = "",):
-        cred = credentials.Certificate("src/credentials.json")
-        firebase_admin.initialize_app(cred, {
-            'projectId' : "equalis-4ceff"
-        })
         db = firestore.client()
         info = db.collection(u'Users').document(u'{}'.format(uuid)).get()
         if info.exists:
             data = info.to_dict()
             self.name = data['name']
-            self.uuid = data['uuid']
+            self.uuid = data['identity hash']
             self.privilege = data['privilege']
             self.votes_sent = data['votes_sent']
             self.elections = data['elections']
@@ -21,7 +17,7 @@ class User:
             data = {
                 u'name': full_name,
                 u'privilege': 0,
-                u'uuid': uuid,
+                u'identity hash': uuid,
                 u'votes_sent': [],
                 u'elections': []
             }
@@ -39,3 +35,14 @@ class User:
     
     def has_voted(self, election_id):
         return election_id in self.votes_sent
+
+    def get_user(uuid):
+        db = firestore.client()
+        return db.collection(u'Users').document(u'{}'.format(uuid)).get().to_dict()
+
+cred = credentials.Certificate("src/credentials.json")
+firebase_admin.initialize_app(cred, {
+    'projectId' : "equalis-4ceff"
+})
+user = User.get_user("MTR0wePMRozc8mJLhpNc")
+print(user[u'elections'])
