@@ -43,7 +43,7 @@ def createElection(name):
 def createCandidate(election_id, candidate_id, name, description):
     contract.functions.createCandidate(
         election_id, candidate_id, name, description).transact()
-    return contract.functions.createCandidate(name).call()
+    return contract.functions.createCandidate(election_id, candidate_id, name, description).call()
 
 
 print(createCandidate(2, "bram", "nam", "perfect"))
