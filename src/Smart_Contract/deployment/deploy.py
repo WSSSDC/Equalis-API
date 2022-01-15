@@ -4,7 +4,7 @@ from web3 import Web3
 import os
 from dotenv import load_dotenv
 
-install_solc("0.7.0")
+install_solc("0.8.2")
 load_dotenv()
 
 
@@ -26,7 +26,7 @@ compile_sol = compile_standard(
             }
         },
     },
-    solc_version="0.7.0",
+    solc_version="0.8.2",
 )
 
 with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
@@ -34,7 +34,6 @@ with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
 
 bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"]["bytecode"]["object"]
 abi = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["abi"]
-print(abi)
 
 # for connecting to ganache
 # chain_id = 1337
@@ -64,6 +63,11 @@ contract = web3.eth.contract(
 )
 
 print(tx_receipt.contractAddress)
+save_file = {}
+save_file['ADDRESS'] = tx_receipt.contractAddress
+
+with open("src/Smart_Contract/deployment/address.json", "w") as file:
+    json.dump(save_file, file)
 
 
 print('Default elections: {}'.format(
