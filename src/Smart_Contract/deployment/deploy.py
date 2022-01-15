@@ -1,5 +1,4 @@
 import json
-from eth_utils import address
 from solcx import compile_standard, install_solc
 from web3 import Web3
 import os
@@ -9,7 +8,7 @@ install_solc("0.7.0")
 load_dotenv()
 
 
-CONTRACT_PATH = 'elections.sol'
+CONTRACT_PATH = 'src/Smart_Contract/elections.sol'
 with open(CONTRACT_PATH, 'r') as f:
     source = f.read()
 
@@ -30,11 +29,12 @@ compile_sol = compile_standard(
     solc_version="0.7.0",
 )
 
-with open("compile_sol.json", "w") as file:
+with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
     json.dump(compile_sol, file)
 
 bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"]["bytecode"]["object"]
 abi = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["abi"]
+print(abi)
 
 # for connecting to ganache
 # chain_id = 1337
@@ -71,10 +71,7 @@ print('Default elections: {}'.format(
 ))
 
 # update the greeting
-tx_hash = contract.functions.createElection('US Election').transact()
-tx_hash = contract.functions.createElection('Canada Election').transact()
-tx_hash = contract.functions.createElection('UK Election').transact()
-tx_hash = contract.functions.createElection('Cuba Election').transact()
+tx_hash = contract.functions.createElection('First Election').transact()
 
 # # Wait for transaction to be mined...
 web3.eth.waitForTransactionReceipt(tx_hash)
