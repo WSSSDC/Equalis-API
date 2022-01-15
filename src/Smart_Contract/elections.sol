@@ -3,21 +3,23 @@ pragma solidity >=0.7.0 <0.9.0;
 contract ElectionsContract {
     //Model a candidate
     struct Candidate {
-        uint256 id;
         string name;
+        string description;
         uint256 voteCount;
     }
     // Model election
     struct Election {
-        uint256 id;
         string name;
         bool start;
         bool end;
         // Store accounts which have voted
-        mapping(uint256 => bool) voters;
-        mapping(uint256 => Candidate) candidates;
+        mapping(string => bool) voters;
+        mapping(string => Candidate) candidates;
+        // Check if I have this ID
+        mapping(string => bool) candidatesIDs;
         // Store Candidate Count
         uint256 candidatesCount;
+        uint256 totalVoteCount;
     }
 
     // Store Elections
@@ -30,11 +32,11 @@ contract ElectionsContract {
         _;
     }
 
-    modifier validateCandidate(uint256 _electionID, uint256 _candidateID) {
-        require(
-            _candidateID > 0 &&
-                _candidateID <= elections[_electionID].candidatesCount
-        );
+    modifier validateCandidate(
+        uint256 _electionID,
+        string memory _candidateID
+    ) {
+        require(elections[_electionID].candidatesIDs[_candidateID]);
         _;
     }
 
@@ -52,34 +54,34 @@ contract ElectionsContract {
         returns (uint256 electionID)
     {
         electionID = electionsCount++;
-        elections[electionID].id = electionsCount;
         elections[electionID].name = _name;
         elections[electionID].start = false;
         elections[electionID].end = false;
     }
 
-    function createCandidate(uint256 _electionID, string memory _name)
-        public
-        validateElection(_electionID)
-        returns (uint256 candidateID)
-    {
+    function createCandidate(
+        uint256 _electionID,
+        string memory _candidateID,
+        string memory _name,
+        string memory _description
+    ) public validateElection(_electionID) {
         // require that the election has not started
         require(!elections[_electionID].start);
         // require that the election has not finished
         require(!elections[_electionID].end);
         // create candidateID
-        candidateID = elections[_electionID].candidatesCount++;
-        elections[_electionID].candidates[candidateID] = Candidate(
-            candidateID,
+        elections[_electionID].candidatesCount++;
+        elections[_electionID].candidates[_candidateID] = Candidate(
             _name,
+            _description,
             0
         );
     }
 
     function vote(
         uint256 _electionID,
-        uint256 _candidateID,
-        uint256 _userID
+        string memory _candidateID,
+        string calldata _userID
     )
         public
         validateElection(_electionID)
@@ -96,6 +98,7 @@ contract ElectionsContract {
 
         // record that voter has voted
         elections[_electionID].voters[_userID] = true;
+        elections[_electionID].totalVoteCount++;
 
         // update candidate vote count
         elections[_electionID].candidates[_candidateID].voteCount++;
@@ -124,16 +127,67 @@ contract ElectionsContract {
         elections[_electionID].end = true;
     }
 
-    function getElectionsCount() public returns (uint256) {
+    function getElectionsCount() public view returns (uint256) {
         return electionsCount;
     }
 
-    function getVotes(uint256 _electionID, uint256 _candidateID)
-        private
+    function getElectionName(uint256 _electionID)
+        public
+        view
+        validateElection(_electionID)
+        returns (string memory)
+    {
+        return elections[_electionID].name;
+    }
+
+    function getElectionVotes(uint256 _electionID)
+        public
+        view
+        validateElection(_electionID)
+        returns (uint256)
+    {
+        return elections[_electionID].totalVoteCount;
+    }
+
+    function getElectionCandidatesCount(uint256 _electionID)
+        public
+        view
+        validateElection(_electionID)
+        returns (uint256)
+    {
+        return elections[_electionID].candidatesCount;
+    }
+
+    function getCandidateName(uint256 _electionID, string memory _candidateID)
+        public
+        view
         validateElection(_electionID)
         validateCandidate(_electionID, _candidateID)
-        returns (uint256 votes)
+        returns (string memory)
     {
-        votes = elections[_electionID].candidates[_candidateID].voteCount;
+        return elections[_electionID].candidates[_candidateID].name;
+    }
+
+    function getCandidateDescription(
+        uint256 _electionID,
+        string memory _candidateID
+    )
+        public
+        view
+        validateElection(_electionID)
+        validateCandidate(_electionID, _candidateID)
+        returns (string memory)
+    {
+        return elections[_electionID].candidates[_candidateID].description;
+    }
+
+    function getCandidateVotes(uint256 _electionID, string memory _candidateID)
+        public
+        view
+        validateElection(_electionID)
+        validateCandidate(_electionID, _candidateID)
+        returns (uint256)
+    {
+        return elections[_electionID].candidates[_candidateID].voteCount;
     }
 }
