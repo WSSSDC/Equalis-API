@@ -195,10 +195,12 @@ contract ElectionsContract {
         validateElection(_electionID)
         returns (uint256)
     {
+        uint256 finalState = 2;
         State state = elections[_electionID].state;
-        if (state == State.Created) return 0;
-        if (state == State.Voting) return 1;
-        if (state == State.Ended) return 2;
+        if (state == State.Created) finalState = 0;
+        if (state == State.Voting) finalState = 1;
+        if (state == State.Ended) finalState = 2;
+        return finalState;
     }
 
     function hasUserVoted(uint256 _electionID, string memory _userID)
