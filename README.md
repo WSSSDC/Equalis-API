@@ -26,7 +26,7 @@ Users sign up by scanning their passport, healthcard, and a special QR Code sent
   - `face_recognition`: This Python package was used to measure the similarity between a user's passport photo and another photo
   - `firebase_admin`: Firebase SDK for Python
   - `web3.py`: Used to interact with the Solidity smart contract on the blockchain
-  - `py-solc-x`:
+  - `py-solc-x`: For compiling the Solidity code
   - `pytesseract`: We used pytesseract for the passport verification by reading MRZ's (Machine Readable Zones)
   - `flask`: Used to host our JSON API on the web
 - **Firebase**: We also made our backend with Firebase to hold the userdata (name, uuid, priveledge, votes sent, ect.)
@@ -43,7 +43,8 @@ Users sign up by scanning their passport, healthcard, and a special QR Code sent
 
 - Implementing a full smart contract with no previous knowledge of Solidity
 - Getting it all working, lol
--
+- Connectng out app to Ganache
+- Not accidentally deploying to MainNet
 
 ## 📖 What we learned
 
@@ -64,7 +65,6 @@ Users sign up by scanning their passport, healthcard, and a special QR Code sent
 ## Tech Stack
 
 ![techstack](https://user-images.githubusercontent.com/47152801/149667898-8c61a6a6-eb78-4244-9529-3a7fd1aace1e.png)
-
 
 ## 🖼 Gallery
 
