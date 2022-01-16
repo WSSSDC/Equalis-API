@@ -30,22 +30,21 @@ Users sign up by scanning their passport, healthcard, and a special QR Code sent
   - `pytesseract`: We used pytesseract for the passport verification by reading MRZ's (Machine Readable Zones)
   - `flask`: Used to host our JSON API on the web
 - **Firebase**: We also made our backend with Firebase to hold the userdata (name, uuid, priveledge, votes sent, ect.)
-- **Solidity**: Solidity was used to create the smart contracts on the blockchain
+- **Solidity**: Solidity was used to create the smart contract on the blockchain
 
 ## 🛑 Challenges we ran into
 
-- Blockchain development
+- Smart Contract development
 - Making sure the ocr packages were able to run on repl.it
-- Having Python interact with our blockchain
+- Having Python interact with the blockchain
 - Figuring out what information to store in a database vs. the blockchain
 
 ## ✅ Accomplishments that we're proud of
 
 - Implementing a full smart contract with no previous knowledge of Solidity
 - Getting it all working, lol
-- Connectng out app to Ganache
-- Not accidentally deploying to MainNet
-
+- Connectng our app to Rinkeby TestNet
+  
 ## 📖 What we learned
 
 - Solidity
@@ -59,7 +58,7 @@ Users sign up by scanning their passport, healthcard, and a special QR Code sent
 - Refine the user authenication process
 - Create more robust tooling for creating elections
 - Add more forms of verification incase people dont have their passport handy
-- Deploy the smart contracts to MainNet
+- Deploy the smart contract to MainNet or on-premise Private Network
 - Refine the law summarization
 
 ## Tech Stack
