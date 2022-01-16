@@ -1,81 +1,121 @@
 import json
-from solcx import compile_standard, install_solc
+
 from web3 import Web3
+
+# from solcx import compile_standard
+from solcx import compile_standard, install_solc
 import os
 from dotenv import load_dotenv
 
-install_solc("0.8.2")
 load_dotenv()
 
+URL = "http://127.0.0.1:7545"
+CHAIN_ID = 1337
+WALLET_ADDRESS = "0xF9Aa14b7d27C84aCAffcdE6d264359C7a3DFc39a"
+PRIVATE_KEY = "0x33acb69debb1cc65d4dca332dda6f62400514b17fe49a92aefca2a57fd7f0ef9"
 
-CONTRACT_PATH = "src/Smart_Contract/elections.sol"
-with open(CONTRACT_PATH, "r") as f:
-    source = f.read()
 
-# Compile Solidity
+with open("src/Smart_Contract/elections.sol", "r") as file:
+    election_file = file.read()
 
-compile_sol = compile_standard(
+print("Installing...")
+install_solc("0.8.0")
+
+# Solidity source code
+compiled_sol = compile_standard(
     {
         "language": "Solidity",
-        "sources": {"elections.sol": {"content": source}},
+        "sources": {"elections.sol": {"content": election_file}},
         "settings": {
             "outputSelection": {
-                "*": {"*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]}
+                "*": {
+                    "*": ["abi", "metadata", "evm.bytecode", "evm.bytecode.sourceMap"]
+                }
             }
         },
     },
-    solc_version="0.8.2",
+    solc_version="0.8.0",
 )
 
-with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
-    json.dump(compile_sol, file)
+with open("compiled_sol.json", "w") as file:
+    json.dump(compiled_sol, file)
 
-bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"][
+# get bytecode
+bytecode = compiled_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"][
     "bytecode"
 ]["object"]
-abi = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["abi"]
 
-# Set up web3 connection with Ganache
-ganache_url = "http://127.0.0.1:7545"
-web3 = Web3(Web3.HTTPProvider(ganache_url))
+# get abi
+abi = json.loads(
+    compiled_sol["contracts"]["elections.sol"]["ElectionsContract"]["metadata"]
+)["output"]["abi"]
 
-# set pre-funded account as sender
-web3.eth.defaultAccount = web3.eth.accounts[0]
+w3 = Web3(Web3.HTTPProvider(URL))
 
-# Instantiate and deploy contract
-Elections = web3.eth.contract(abi=abi, bytecode=bytecode)
-print("Deploying Contract!")
 
+Election = w3.eth.contract(abi=abi, bytecode=bytecode)
+# Get the latest transaction
+nonce = w3.eth.getTransactionCount(WALLET_ADDRESS)
 # Submit the transaction that deploys the contract
-tx_hash = Elections.constructor().transact()
-print("Waiting for transaction to finish...")
-
+transaction = Election.constructor().buildTransaction(
+    {
+        "chainId": CHAIN_ID,
+        "gasPrice": w3.eth.gas_price,
+        "from": WALLET_ADDRESS,
+        "nonce": nonce,
+    }
+)
+# Sign the transaction
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=PRIVATE_KEY)
+print("Deploying Contract!")
+# Send it!
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 # Wait for the transaction to be mined, and get the transaction receipt
-tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
-print("Done! Contract deployed to Ganache!")
+print("Waiting for transaction to finish...")
+tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+print(f"Done! Contract deployed to {tx_receipt.contractAddress}")
 
-# Create the contract instance with the newly-deployed address
-contract = web3.eth.contract(
-    address=tx_receipt.contractAddress,
-    abi=abi,
+# Working with deployed Contracts
+
+CONTRACT_ADDRESS = tx_receipt.contractAddress
+
+# Save the contract address
+settings = {}
+settings["CONTRACT_ADDRESS"] = CONTRACT_ADDRESS
+settings["WALLET_ADDRESS"] = WALLET_ADDRESS
+settings["CHAIN_ID"] = CHAIN_ID
+settings["URL"] = URL
+
+
+with open("src/Smart_Contract/deployment/settings_ganache.json", "w") as file:
+    json.dump(settings, file)
+
+# Create the contract
+contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=abi)
+
+
+print(f"Default elections: {contract.functions.getElectionsCount().call()}")
+
+
+test = contract.functions.createElection("First Erection")
+
+nonce = w3.eth.getTransactionCount(WALLET_ADDRESS)
+
+transaction = test.buildTransaction(
+    {
+        "chainId": CHAIN_ID,
+        "gasPrice": w3.eth.gas_price,
+        "from": WALLET_ADDRESS,
+        "nonce": nonce,
+    }
 )
 
-save_file = {}
-save_file["ADDRESS"] = tx_receipt.contractAddress
-
-with open("src/Smart_Contract/deployment/address.json", "w") as file:
-    json.dump(save_file, file)
-
-
-print("Default elections: {}".format(contract.functions.getElectionsCount().call()))
-
-# Create a new election
-tx_hash = contract.functions.createElection("First Erection").transact()
-
-# Wait for transaction to be mined...
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=PRIVATE_KEY)
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 print("Waiting for transaction to finish...")
-web3.eth.waitForTransactionReceipt(tx_hash)
+tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
 print("Transaction finished!")
 
 # Display the new greeting value
 print("Updated elections: {}".format(contract.functions.getElectionsCount().call()))
+print("First Election Name: {}".format(contract.functions.getElectionName(1).call()))
