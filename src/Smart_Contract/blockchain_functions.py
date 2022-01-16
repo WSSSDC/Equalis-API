@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 with open("src/Smart_Contract/deployment/settings.json", "r") as f:
     settings = json.loads(f.read())
 
@@ -14,7 +15,12 @@ URL = settings["URL"]
 WALLET_ADDRESS = settings["WALLET_ADDRESS"]
 CONTRACT_ADDRESS = settings["CONTRACT_ADDRESS"]
 CHAIN_ID = settings["CHAIN_ID"]
-PRIVATE_KEY = "0x44e01920e7a6865970bef5350001b9b67cb20346990ead8cca1745bda743e73b"
+isLocal = settings["ISLOCAL"]
+
+if isLocal:
+    PRIVATE_KEY = os.getenv("PRIVATE_KEY_GANACHE")
+else:
+    PRIVATE_KEY = os.getenv("PRIVATE_KEY_TESTNET")
 
 
 w3 = Web3(Web3.HTTPProvider(URL))

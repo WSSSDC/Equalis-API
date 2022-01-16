@@ -9,10 +9,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-URL = "http://127.0.0.1:7545"
-CHAIN_ID = 1337
-WALLET_ADDRESS = "0xF9Aa14b7d27C84aCAffcdE6d264359C7a3DFc39a"
-PRIVATE_KEY = "0x33acb69debb1cc65d4dca332dda6f62400514b17fe49a92aefca2a57fd7f0ef9"
+# If local true uses Ganache otherwise uses rinkeby tesnet
+isLocal = False
+
+if isLocal:
+    URL = "http://127.0.0.1:7545"
+    CHAIN_ID = 1337
+    WALLET_ADDRESS = "0xF9Aa14b7d27C84aCAffcdE6d264359C7a3DFc39a"
+    PRIVATE_KEY = os.getenv("PRIVATE_KEY_GANACHE")
+else:
+    URL = "https://rinkeby.infura.io/v3/1f9910d7cd1c4ed2ac44ec87f3d2a4e3"
+    CHAIN_ID = 4
+    WALLET_ADDRESS = "0x11102570851b674029C7b90282A2470aFA89f31f"
+    PRIVATE_KEY = os.getenv("PRIVATE_KEY_TESTNET")
 
 
 with open("src/Smart_Contract/elections.sol", "r") as file:
@@ -65,6 +74,7 @@ transaction = Election.constructor().buildTransaction(
         "nonce": nonce,
     }
 )
+
 # Sign the transaction
 signed_txn = w3.eth.account.sign_transaction(transaction, private_key=PRIVATE_KEY)
 print("Deploying Contract!")
@@ -85,9 +95,10 @@ settings["CONTRACT_ADDRESS"] = CONTRACT_ADDRESS
 settings["WALLET_ADDRESS"] = WALLET_ADDRESS
 settings["CHAIN_ID"] = CHAIN_ID
 settings["URL"] = URL
+settings["ISLOCAL"] = isLocal
 
 
-with open("src/Smart_Contract/deployment/settings_ganache.json", "w") as file:
+with open("src/Smart_Contract/deployment/settings.json", "w") as file:
     json.dump(settings, file)
 
 # Create the contract
