@@ -29,26 +29,30 @@ contract = web3.eth.contract(
 
 # Create a election WORKS
 def createElection(name):
+    response = contract.functions.createElection(name).call()
     contract.functions.createElection(name).transact()
-    return contract.functions.createElection(name).call()
+    return response
 
 
 # Create Candidate WORKS
 def createCandidate(election_id, name, description):
+    response = contract.functions.createCandidate(election_id, name, description).call()
     contract.functions.createCandidate(election_id, name, description).transact()
-    return contract.functions.createCandidate(election_id, name, description).call()
+    return response
 
 
 # Start Election WORKS
 def startElection(election_id):
+    response = contract.functions.startElection(election_id).call()
     contract.functions.startElection(election_id).transact()
-    return contract.functions.startElection(election_id).call()
+    return response
 
 
 # End Election
 def endElection(election_id):
+    response = contract.functions.endElection(election_id).call()
     contract.functions.endElection(election_id).transact()
-    return contract.functions.endElection(election_id).call()
+    return response
 
 
 # Vote WORKS
@@ -73,7 +77,6 @@ def hasUserVoted(election_id, user_id):
 
 # Get Election Name
 def getElectionName(election_id):
-    contract.functions.getElectionName(election_id).transact()
     return contract.functions.getElectionName(election_id).call()
 
 
@@ -105,7 +108,7 @@ def getCandidateDescription(election_id, candidate_id):
 
 print(f"Election Status: {getElectionStatus(1)}")
 # print(getElectionsCount())
-# print(createElection("us election"))
+print(f'New Election ID: {createElection("us election")}')
 # print(f'Candidate ID: {createCandidate(1, "another one", "test")}')
 # print(getElectionCandidatesCount(1))
 # print(f"Start Election: {startElection(1)}")
@@ -115,3 +118,5 @@ print(f"Election Status: {getElectionStatus(1)}")
 
 print(getElectionName(1))
 print(getElectionName(2))
+print(getElectionName(3))
+print(getElectionName(4))
