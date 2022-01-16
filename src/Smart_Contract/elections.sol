@@ -8,18 +8,22 @@ contract ElectionsContract {
         string description;
         uint256 voteCount;
     }
+    enum State {
+        Created,
+        Voting,
+        Ended
+    }
     // Model election
     struct Election {
         string name;
-        bool start;
-        bool end;
         // Store accounts which have voted
         mapping(string => bool) voters;
-        mapping(string => Candidate) candidates;
+        mapping(uint256 => Candidate) candidates;
+        State state;
         // Check if I have this ID
-        mapping(string => bool) candidatesIDs;
+        // mapping(string => bool) candidatesIDs;
         // Store Candidate Count
-        string[] candidatesIDsArray;
+        // string[] candidatesIDsArray;
         uint256 candidatesCount;
         uint256 totalVoteCount;
     }
@@ -34,11 +38,16 @@ contract ElectionsContract {
         _;
     }
 
-    modifier validateCandidate(
-        uint256 _electionID,
-        string memory _candidateID
-    ) {
-        require(elections[_electionID].candidatesIDs[_candidateID]);
+    modifier inState(State _state, uint256 _electionID) {
+        require(elections[_electionID].state == _state);
+        _;
+    }
+
+    modifier validateCandidate(uint256 _electionID, uint256 _candidateID) {
+        require(
+            _candidateID > 0 &&
+                _candidateID <= elections[_electionID].candidatesCount
+        );
         _;
     }
 
@@ -57,54 +66,52 @@ contract ElectionsContract {
     {
         electionID = electionsCount++;
         elections[electionID].name = _name;
-        elections[electionID].start = false;
-        elections[electionID].end = false;
+        elections[electionID].state = State.Created;
     }
 
     function createCandidate(
         uint256 _electionID,
-        string memory _candidateID,
         string memory _name,
         string memory _description
-    ) public validateElection(_electionID) {
-        // require that the election has not started
-        require(!elections[_electionID].start);
-        // require that the election has not finished
-        require(!elections[_electionID].end);
+    )
+        public
+        validateElection(_electionID)
+        inState(State.Created, _electionID)
+        returns (uint256)
+    {
         // create candidateID
-        elections[_electionID].candidatesCount++;
-        elections[_electionID].candidatesIDsArray.push(_candidateID);
-        elections[_electionID].candidates[_candidateID] = Candidate(
+        uint256 candidateID = elections[_electionID].candidatesCount++;
+        elections[_electionID].candidates[candidateID] = Candidate(
             _name,
             _description,
             0
         );
+        return candidateID;
+
+        // elections[_electionID].candidatesIDs[candidateID] = true;
+        // elections[_electionID].candidatesIDsArray.push(_candidateID);
     }
 
     function vote(
         uint256 _electionID,
-        string memory _candidateID,
-        string calldata _userID
+        uint256 _candidateID,
+        string memory _userID
     )
         public
         validateElection(_electionID)
         validateCandidate(_electionID, _candidateID)
+        inState(State.Voting, _electionID)
     {
-        // require that the election has started
-        require(elections[_electionID].start);
-
-        // require that the election has not finished
-        require(!elections[_electionID].end);
-
         // require that address hasn't voted before
-        require(!elections[_electionID].voters[_userID]);
+        if (!elections[_electionID].voters[_userID]) {
+            elections[_electionID].voters[_userID] = true;
+            elections[_electionID].totalVoteCount++;
+            elections[_electionID].candidates[_candidateID].voteCount++;
+        }
 
         // record that voter has voted
-        elections[_electionID].voters[_userID] = true;
-        elections[_electionID].totalVoteCount++;
 
         // update candidate vote count
-        elections[_electionID].candidates[_candidateID].voteCount++;
 
         // trigger vote event
         // emit votedEvent(_candidateId);
@@ -112,22 +119,18 @@ contract ElectionsContract {
 
     function startElection(uint256 _electionID)
         public
+        inState(State.Created, _electionID)
         validateElection(_electionID)
     {
-        // require that the election has not started
-        require(!elections[_electionID].start);
-        // require that the election has not finished
-        require(!elections[_electionID].end);
-        elections[_electionID].start = true;
+        elections[_electionID].state = State.Voting;
     }
 
     function endElection(uint256 _electionID)
         public
         validateElection(_electionID)
+        inState(State.Voting, _electionID)
     {
-        // require that the election has not finished
-        require(!elections[_electionID].end);
-        elections[_electionID].end = true;
+        elections[_electionID].state = State.Ended;
     }
 
     function getElectionsCount() public view returns (uint256) {
@@ -161,7 +164,7 @@ contract ElectionsContract {
         return elections[_electionID].candidatesCount;
     }
 
-    function getCandidateName(uint256 _electionID, string memory _candidateID)
+    function getCandidateName(uint256 _electionID, uint256 _candidateID)
         public
         view
         validateElection(_electionID)
@@ -171,10 +174,7 @@ contract ElectionsContract {
         return elections[_electionID].candidates[_candidateID].name;
     }
 
-    function getCandidateDescription(
-        uint256 _electionID,
-        string memory _candidateID
-    )
+    function getCandidateDescription(uint256 _electionID, uint256 _candidateID)
         public
         view
         validateElection(_electionID)
@@ -184,7 +184,7 @@ contract ElectionsContract {
         return elections[_electionID].candidates[_candidateID].description;
     }
 
-    function getCandidateVotes(uint256 _electionID, string memory _candidateID)
+    function getCandidateVotes(uint256 _electionID, uint256 _candidateID)
         public
         view
         validateElection(_electionID)
@@ -194,12 +194,32 @@ contract ElectionsContract {
         return elections[_electionID].candidates[_candidateID].voteCount;
     }
 
-    function getElectionCandidateIDs(uint256 _electionID)
+    function getElectionStatus(uint256 _electionID)
         public
         view
         validateElection(_electionID)
-        returns (string[] memory)
+        returns (uint256)
     {
-        return elections[_electionID].candidatesIDsArray;
+        State state = elections[_electionID].state;
+        if (state == State.Created) return 0;
+        if (state == State.Voting) return 1;
+        if (state == State.Ended) return 2;
     }
+
+    function hasUserVoted(uint256 _electionID, string memory _userID)
+        public
+        view
+        returns (bool)
+    {
+        return elections[_electionID].voters[_userID];
+    }
+
+    // function getElectionCandidateIDs(uint256 _electionID)
+    //     public
+    //     view
+    //     validateElection(_electionID)
+    //     returns (string[] memory)
+    // {
+    //     return elections[_electionID].candidatesIDsArray;
+    // }
 }
