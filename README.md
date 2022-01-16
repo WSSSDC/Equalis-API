@@ -63,7 +63,8 @@ Users sign up by scanning their passport, healthcard, and a special QR Code sent
 
 ## Tech Stack
 
-![techstack](https://user-images.githubusercontent.com/47152801/149663613-69818714-d8d7-4ad6-a4c4-1087ac30812f.png)
+![techstack](https://user-images.githubusercontent.com/47152801/149667898-8c61a6a6-eb78-4244-9529-3a7fd1aace1e.png)
+
 
 ## 🖼 Gallery
 
