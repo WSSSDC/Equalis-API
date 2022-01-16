@@ -27,7 +27,7 @@ contract ElectionsContract {
         uint256 candidatesCount;
         uint256 totalVoteCount;
     }
-
+    string public tmp;
     // Store Elections
     mapping(uint256 => Election) elections;
     // Store Election Count
@@ -55,7 +55,9 @@ contract ElectionsContract {
         public
         returns (uint256 electionID)
     {
-        electionID = electionsCount++;
+        tmp = _name;
+        electionsCount++;
+        electionID = electionsCount;
         elections[electionID].name = _name;
         elections[electionID].state = State.Created;
     }
@@ -71,7 +73,8 @@ contract ElectionsContract {
         returns (uint256)
     {
         // create candidateID
-        uint256 candidateID = elections[_electionID].candidatesCount++;
+        elections[_electionID].candidatesCount++;
+        uint256 candidateID = elections[_electionID].candidatesCount;
         elections[_electionID].candidates[candidateID] = Candidate(
             _name,
             _description,
@@ -124,13 +127,14 @@ contract ElectionsContract {
         return electionsCount;
     }
 
+    // validateElection(_electionID)
     function getElectionName(uint256 _electionID)
         public
         view
-        validateElection(_electionID)
-        returns (string memory)
+        returns (string memory name)
     {
-        return elections[_electionID].name;
+        name = elections[_electionID].name;
+        return name;
     }
 
     function getElectionVotes(uint256 _electionID)
@@ -156,9 +160,10 @@ contract ElectionsContract {
         view
         validateElection(_electionID)
         validateCandidate(_electionID, _candidateID)
-        returns (string memory)
+        returns (string memory name)
     {
-        return elections[_electionID].candidates[_candidateID].name;
+        name = elections[_electionID].candidates[_candidateID].name;
+        return name;
     }
 
     function getCandidateDescription(uint256 _electionID, uint256 _candidateID)
@@ -166,9 +171,12 @@ contract ElectionsContract {
         view
         validateElection(_electionID)
         validateCandidate(_electionID, _candidateID)
-        returns (string memory)
+        returns (string memory description)
     {
-        return elections[_electionID].candidates[_candidateID].description;
+        description = elections[_electionID]
+            .candidates[_candidateID]
+            .description;
+        return description;
     }
 
     function getCandidateVotes(uint256 _electionID, uint256 _candidateID)

@@ -8,8 +8,8 @@ install_solc("0.8.2")
 load_dotenv()
 
 
-CONTRACT_PATH = 'src/Smart_Contract/elections.sol'
-with open(CONTRACT_PATH, 'r') as f:
+CONTRACT_PATH = "src/Smart_Contract/elections.sol"
+with open(CONTRACT_PATH, "r") as f:
     source = f.read()
 
 # Compile Solidity
@@ -20,9 +20,7 @@ compile_sol = compile_standard(
         "sources": {"elections.sol": {"content": source}},
         "settings": {
             "outputSelection": {
-                "*": {
-                    "*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]
-                }
+                "*": {"*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]}
             }
         },
     },
@@ -32,7 +30,9 @@ compile_sol = compile_standard(
 with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
     json.dump(compile_sol, file)
 
-bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"]["bytecode"]["object"]
+bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"][
+    "bytecode"
+]["object"]
 abi = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["abi"]
 
 # for connecting to ganache
@@ -64,23 +64,19 @@ contract = web3.eth.contract(
 
 print(tx_receipt.contractAddress)
 save_file = {}
-save_file['ADDRESS'] = tx_receipt.contractAddress
+save_file["ADDRESS"] = tx_receipt.contractAddress
 
 with open("src/Smart_Contract/deployment/address.json", "w") as file:
     json.dump(save_file, file)
 
 
-print('Default elections: {}'.format(
-    contract.functions.getElectionsCount().call()
-))
+print("Default elections: {}".format(contract.functions.getElectionsCount().call()))
 
 # update the greeting
-tx_hash = contract.functions.createElection('First Election').transact()
+tx_hash = contract.functions.createElection("First Election").transact()
 
-# # Wait for transaction to be mined...
+# Wait for transaction to be mined...
 web3.eth.waitForTransactionReceipt(tx_hash)
 
 # Display the new greeting value
-print('Updated elections: {}'.format(
-    contract.functions.getElectionsCount().call()
-))
+print("Updated elections: {}".format(contract.functions.getElectionsCount().call()))

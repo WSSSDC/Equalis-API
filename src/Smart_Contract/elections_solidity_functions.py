@@ -53,7 +53,6 @@ def endElection(election_id):
 
 # Vote WORKS
 def vote(election_id, candidate_id, user_id):
-    contract.functions.vote(election_id, candidate_id, user_id).transact()
     return contract.functions.vote(election_id, candidate_id, user_id).call()
 
 
@@ -74,6 +73,7 @@ def hasUserVoted(election_id, user_id):
 
 # Get Election Name
 def getElectionName(election_id):
+    contract.functions.getElectionName(election_id).transact()
     return contract.functions.getElectionName(election_id).call()
 
 
@@ -103,7 +103,7 @@ def getCandidateDescription(election_id, candidate_id):
     return contract.functions.getCandidateDescription(election_id, candidate_id).call()
 
 
-# print(f"Election Status: {getElectionStatus(1)}")
+print(f"Election Status: {getElectionStatus(1)}")
 # print(getElectionsCount())
 # print(createElection("us election"))
 # print(f'Candidate ID: {createCandidate(1, "another one", "test")}')
@@ -112,3 +112,6 @@ def getCandidateDescription(election_id, candidate_id):
 # print(f'Voting: {vote(1, 2, "cuco")}')
 # print(f"Votes of the candidate: {getCandidateVotes(1, 2)}")
 # print(hasVoted(1, "popo"))
+
+print(getElectionName(1))
+print(getElectionName(2))
