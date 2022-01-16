@@ -1,5 +1,5 @@
 from tracemalloc import start
-from Smart_Contract import elections_solidity_functions as contract
+from Smart_Contract import functions_ganache as contract
 import firebase_admin
 from firebase_admin import firestore
 from firebase_admin import credentials

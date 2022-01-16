@@ -35,11 +35,6 @@ bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"]
 ]["object"]
 abi = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["abi"]
 
-# for connecting to ganache
-# chain_id = 1337
-# address = "0x711644A30f3DC3024A2165cAAabc24069E185F23"
-# private_key = "0x60afdfe938c73aee96b4a99cc2425d49cd8b33d7914ee7dd31e39f02a305a8f0"
-
 # Set up web3 connection with Ganache
 ganache_url = "http://127.0.0.1:7545"
 web3 = Web3(Web3.HTTPProvider(ganache_url))
@@ -49,12 +44,15 @@ web3.eth.defaultAccount = web3.eth.accounts[0]
 
 # Instantiate and deploy contract
 Elections = web3.eth.contract(abi=abi, bytecode=bytecode)
+print("Deploying Contract!")
 
 # Submit the transaction that deploys the contract
 tx_hash = Elections.constructor().transact()
+print("Waiting for transaction to finish...")
 
 # Wait for the transaction to be mined, and get the transaction receipt
 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+print("Done! Contract deployed to Ganache!")
 
 # Create the contract instance with the newly-deployed address
 contract = web3.eth.contract(
@@ -62,7 +60,6 @@ contract = web3.eth.contract(
     abi=abi,
 )
 
-print(tx_receipt.contractAddress)
 save_file = {}
 save_file["ADDRESS"] = tx_receipt.contractAddress
 
@@ -72,11 +69,13 @@ with open("src/Smart_Contract/deployment/address.json", "w") as file:
 
 print("Default elections: {}".format(contract.functions.getElectionsCount().call()))
 
-# update the greeting
+# Create a new election
 tx_hash = contract.functions.createElection("First Erection").transact()
 
 # Wait for transaction to be mined...
+print("Waiting for transaction to finish...")
 web3.eth.waitForTransactionReceipt(tx_hash)
+print("Transaction finished!")
 
 # Display the new greeting value
 print("Updated elections: {}".format(contract.functions.getElectionsCount().call()))

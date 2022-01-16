@@ -1,95 +1,121 @@
 import json
-from re import S
-from solcx import compile_standard, install_solc
+
 from web3 import Web3
+
+# from solcx import compile_standard
+from solcx import compile_standard, install_solc
 import os
 from dotenv import load_dotenv
 
-install_solc("0.8.2")
 load_dotenv()
 
+URL = "https://rinkeby.infura.io/v3/1f9910d7cd1c4ed2ac44ec87f3d2a4e3"
+CHAIN_ID = 4
+WALLET_ADDRESS = "0x11102570851b674029C7b90282A2470aFA89f31f"
+PRIVATE_KEY = "0x44e01920e7a6865970bef5350001b9b67cb20346990ead8cca1745bda743e73b"
 
-CONTRACT_PATH = "src/Smart_Contract/elections.sol"
-with open(CONTRACT_PATH, "r") as f:
-    source = f.read()
 
-# Compile Solidity
+with open("src/Smart_Contract/elections.sol", "r") as file:
+    election_file = file.read()
 
-compile_sol = compile_standard(
+print("Installing...")
+install_solc("0.8.0")
+
+# Solidity source code
+compiled_sol = compile_standard(
     {
         "language": "Solidity",
-        "sources": {"elections.sol": {"content": source}},
+        "sources": {"elections.sol": {"content": election_file}},
         "settings": {
             "outputSelection": {
-                "*": {"*": ["abi", "metadata", "evm.bytecode", "evm.sourceMap"]}
+                "*": {
+                    "*": ["abi", "metadata", "evm.bytecode", "evm.bytecode.sourceMap"]
+                }
             }
         },
     },
-    solc_version="0.8.2",
+    solc_version="0.8.0",
 )
 
-with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
-    json.dump(compile_sol, file)
+with open("compiled_sol.json", "w") as file:
+    json.dump(compiled_sol, file)
 
-bytecode = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"][
+# get bytecode
+bytecode = compiled_sol["contracts"]["elections.sol"]["ElectionsContract"]["evm"][
     "bytecode"
 ]["object"]
-abi = compile_sol["contracts"]["elections.sol"]["ElectionsContract"]["abi"]
+
+# get abi
+abi = json.loads(
+    compiled_sol["contracts"]["elections.sol"]["ElectionsContract"]["metadata"]
+)["output"]["abi"]
+
+w3 = Web3(Web3.HTTPProvider(URL))
 
 
-url = "https://rinkeby.infura.io/v3/1f9910d7cd1c4ed2ac44ec87f3d2a4e3"
-w3 = Web3(Web3.HTTPProvider(url))
+Election = w3.eth.contract(abi=abi, bytecode=bytecode)
+# Get the latest transaction
+nonce = w3.eth.getTransactionCount(WALLET_ADDRESS)
+# Submit the transaction that deploys the contract
+transaction = Election.constructor().buildTransaction(
+    {
+        "chainId": CHAIN_ID,
+        "gasPrice": w3.eth.gas_price,
+        "from": WALLET_ADDRESS,
+        "nonce": nonce,
+    }
+)
+# Sign the transaction
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=PRIVATE_KEY)
+print("Deploying Contract!")
+# Send it!
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+# Wait for the transaction to be mined, and get the transaction receipt
+print("Waiting for transaction to finish...")
+tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+print(f"Done! Contract deployed to {tx_receipt.contractAddress}")
 
-chain_id = 4
-wallet_address = "0x11102570851b674029C7b90282A2470aFA89f31f"
-private_key = "0x44e01920e7a6865970bef5350001b9b67cb20346990ead8cca1745bda743e73b"
+# Working with deployed Contracts
 
-contract = w3.eth.contract(abi=abi, bytecode=bytecode)
-# print("Elections")
+CONTRACT_ADDRESS = tx_receipt.contractAddress
 
-# nonce = web3.eth.getTransactionCount(address)
-# print("Nonce")
+# Save the contract address
+settings = {}
+settings["CONTRACT_ADDRESS"] = CONTRACT_ADDRESS
+settings["WALLET_ADDRESS"] = WALLET_ADDRESS
+settings["CHAIN_ID"] = CHAIN_ID
+settings["URL"] = URL
 
-# transaction = Elections.constructor().buildTransaction(
-#     {"chainId": chain_id, "from": address, "nonce": nonce}
-# )
-# print("Transaction")
-# signed_txn = web3.eth.account.sign_transaction(transaction, private_key=private_key)
-# print("Deploying contract...")
 
-# tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-# tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-# print("Deployed!")
+with open("src/Smart_Contract/deployment/settings.json", "w") as file:
+    json.dump(settings, file)
 
-from web3.middleware import geth_poa_middleware
+# Create the contract
+contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=abi)
 
-w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-nonce = w3.eth.get_transaction_count(wallet_address)
+print(f"Default elections: {contract.functions.getElectionsCount().call()}")
 
-transaction = contract.constructor().buildTransaction(
-    {"chainId": chain_id, "from": wallet_address, "nonce": nonce}
+
+test = contract.functions.createElection("First Erection")
+
+nonce = w3.eth.getTransactionCount(WALLET_ADDRESS)
+
+transaction = test.buildTransaction(
+    {
+        "chainId": CHAIN_ID,
+        "gasPrice": w3.eth.gas_price,
+        "from": WALLET_ADDRESS,
+        "nonce": nonce,
+    }
 )
 
-# transaction.update({"gas": appropriate_gas_amount})
-transaction.update({"nonce": nonce})
-signed_tx = w3.eth.account.sign_transaction(transaction, private_key)
+signed_txn = w3.eth.account.sign_transaction(transaction, private_key=PRIVATE_KEY)
+tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+print("Waiting for transaction to finish...")
+tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+print("Transaction finished!")
 
-txn_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-print(f"Hash: {txn_hash}")
-txn_receipt = w3.eth.wait_for_transaction_receipt(txn_hash)
-# print(txn_receipt)
-print("Deployed!")
-
-contract = w3.eth.contract(address=txn_receipt.contractAddress, abi=abi)
-
-print("Default elections: {}".format(contract.functions.getElectionsCount().call()))
-
-
-tx_hash = contract.functions.createElection("First Election").transact()
-
-# Wait for transaction to be mined...
-# w3.eth.waitForTransactionReceipt(tx_hash)
-
-# # Display the new greeting value
-# print("Updated elections: {}".format(contract.functions.getElectionsCount().call()))
+# Display the new greeting value
+print("Updated elections: {}".format(contract.functions.getElectionsCount().call()))
+print("First Election Name: {}".format(contract.functions.getElectionName(1).call()))

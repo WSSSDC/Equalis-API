@@ -27,11 +27,10 @@ contract ElectionsContract {
         uint256 candidatesCount;
         uint256 totalVoteCount;
     }
-    string public tmp;
     // Store Elections
     mapping(uint256 => Election) elections;
     // Store Election Count
-    uint256 electionsCount;
+    uint256 electionsCount = 0;
 
     modifier validateElection(uint256 _electionID) {
         require(_electionID > 0 && _electionID <= electionsCount);
@@ -55,11 +54,12 @@ contract ElectionsContract {
         public
         returns (uint256 electionID)
     {
-        tmp = _name;
         electionsCount++;
         electionID = electionsCount;
         elections[electionID].name = _name;
         elections[electionID].state = State.Created;
+        elections[electionID].candidatesCount = 0;
+        elections[electionID].totalVoteCount = 0;
     }
 
     function createCandidate(
