@@ -10,12 +10,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # If local true uses Ganache otherwise uses rinkeby tesnet
-isLocal = False
+isLocal = True
 
 if isLocal:
     URL = "http://127.0.0.1:7545"
     CHAIN_ID = 1337
-    WALLET_ADDRESS = "0xF9Aa14b7d27C84aCAffcdE6d264359C7a3DFc39a"
+    WALLET_ADDRESS = os.getenv("ADDRESS_GANACHE")
     PRIVATE_KEY = os.getenv("PRIVATE_KEY_GANACHE")
 else:
     URL = "https://rinkeby.infura.io/v3/1f9910d7cd1c4ed2ac44ec87f3d2a4e3"
@@ -46,7 +46,7 @@ compiled_sol = compile_standard(
     solc_version="0.8.0",
 )
 
-with open("compiled_sol.json", "w") as file:
+with open("src/Smart_Contract/deployment/compile_sol.json", "w") as file:
     json.dump(compiled_sol, file)
 
 # get bytecode
