@@ -51,15 +51,6 @@ contract ElectionsContract {
         _;
     }
 
-    // // voted event
-    // event votedEvent(uint256 indexed _candidateId);
-
-    // Constructor
-    // constructor() public {
-    //     addCandidate("Candidate 1");
-    //     addCandidate("Candidate 2");
-    // }
-
     function createElection(string memory _name)
         public
         returns (uint256 electionID)
@@ -108,10 +99,6 @@ contract ElectionsContract {
             elections[_electionID].totalVoteCount++;
             elections[_electionID].candidates[_candidateID].voteCount++;
         }
-
-        // record that voter has voted
-
-        // update candidate vote count
 
         // trigger vote event
         // emit votedEvent(_candidateId);
@@ -213,13 +200,4 @@ contract ElectionsContract {
     {
         return elections[_electionID].voters[_userID];
     }
-
-    // function getElectionCandidateIDs(uint256 _electionID)
-    //     public
-    //     view
-    //     validateElection(_electionID)
-    //     returns (string[] memory)
-    // {
-    //     return elections[_electionID].candidatesIDsArray;
-    // }
 }
