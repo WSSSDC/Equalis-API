@@ -1,16 +1,13 @@
-import json
-
-from web3 import Web3
-
-# from solcx import compile_standard
-from solcx import compile_standard, install_solc
 import os
+import json
+from web3 import Web3
+from solcx import compile_standard, install_solc
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # If local true uses Ganache otherwise uses rinkeby tesnet
-isLocal = True
+isLocal = False
 
 if isLocal:
     URL = "http://127.0.0.1:7545"
