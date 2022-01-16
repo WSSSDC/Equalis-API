@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import firestore
 from firebase_admin import credentials
-from Smart_Contract import functions_ganache as contract
+from Smart_Contract import blockchain_functions as contract
 
 
 class User:
