@@ -91,7 +91,7 @@ contract = w3.eth.contract(address=tx_receipt.contractAddress, abi=abi)
 print("Default elections: {}".format(contract.functions.getElectionsCount().call()))
 
 # update the greeting
-tx_hash = contract.functions.createElection("First Election").transact()
+tx_hash = contract.functions.createElection("First Erection").transact()
 
 # Wait for transaction to be mined...
 w3.eth.waitForTransactionReceipt(tx_hash)

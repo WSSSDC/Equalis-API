@@ -73,7 +73,7 @@ with open("src/Smart_Contract/deployment/address.json", "w") as file:
 print("Default elections: {}".format(contract.functions.getElectionsCount().call()))
 
 # update the greeting
-tx_hash = contract.functions.createElection("First Election").transact()
+tx_hash = contract.functions.createElection("First Erection").transact()
 
 # Wait for transaction to be mined...
 web3.eth.waitForTransactionReceipt(tx_hash)
